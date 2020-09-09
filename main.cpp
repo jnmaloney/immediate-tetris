@@ -2,7 +2,6 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-//#include <emscripten/fetch.h>
 #include <emscripten/html5.h>
 #endif
 #include "graphics.h"
@@ -85,8 +84,6 @@ void loop()
       game_state = PLAY;
     }
 
-    // ? frame();
-
     draw_score();
   }
   else if (game_state == PLAY)
@@ -123,25 +120,21 @@ EM_BOOL key_callback(int action, const EmscriptenKeyboardEvent *e, void *userDat
 {
   if (action == EMSCRIPTEN_EVENT_KEYDOWN)
   {
-    //if (e->keyCode == GLFW_KEY_LEFT)
     if (strcmp(e->key, "ArrowLeft") == 0)
     {
       g_action = 'a';
     }
 
-    //else if (e->key == GLFW_KEY_RIGHT)
     else if (strcmp(e->key, "ArrowRight") == 0)
     {
       g_action = 'd';      
     }
 
-    //else if (e->key == GLFW_KEY_DOWN)
     else if (strcmp(e->key, "ArrowDown") == 0)
     {
       g_action = 's';
     }
 
-    //else if (e->key == GLFW_KEY_ESCAPE)
     else if (strcmp(e->key, "Escape") == 0)
     {
       g_action = 'q';      
@@ -154,7 +147,6 @@ EM_BOOL key_callback(int action, const EmscriptenKeyboardEvent *e, void *userDat
   }
   else if (action == EMSCRIPTEN_EVENT_KEYUP)
   {
-    //if (e->key == GLFW_KEY_DOWN) g_action = 0;
     if (strcmp(e->key, "ArrowDown") == 0) g_action = 0;
   }
 
@@ -164,7 +156,7 @@ EM_BOOL key_callback(int action, const EmscriptenKeyboardEvent *e, void *userDat
 
 extern "C" int main(int argc, char** argv)
 {
-  g_windowManager.width = 345;
+  g_windowManager.widthThemeA = 345;
   g_windowManager.height = 490;
   g_windowManager.init("Project");
   g_menuManager.init(g_windowManager);
@@ -194,7 +186,6 @@ extern "C" int main(int argc, char** argv)
   new_piece();
 
   // Key callbacks
-  //glfwSetKeyCallback(g_windowManager.g_window, key_callback);
   emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, 0, 1, key_callback);
   emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, 0, 1, key_callback);
 
