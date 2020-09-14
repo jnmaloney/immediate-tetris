@@ -1,6 +1,6 @@
 CC=emcc
 WEBCORE_DIR=../WebCore
-SOURCES=main.cpp tinytetris-commented.cpp
+SOURCES=main.cpp system.cpp immediate-tetris.cpp juice.cpp fonts.cpp tinytetris-commented.cpp
 LDFLAGS=-O2 --llvm-opts 2
 OUTPUT=out/imtetris.js
 USE_IMGUI=-I$(WEBCORE_DIR)/imgui/

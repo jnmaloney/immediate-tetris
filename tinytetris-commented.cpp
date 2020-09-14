@@ -32,13 +32,6 @@ std::vector<int> piece_pool = { 0, 1, 2, 3, 4, 5, 6 };
 // block layout is: {w-1,h-1}{x0,y0}{x1,y1}{x2,y2}{x3,y3} (two bits each)
 int x = 431424, y = 598356, r = 427089, px = 247872, py = 799248, pr,
     c = 348480, p = 615696, tick, board[20][10],
-    block[7][4] = {{x, y, x, y},
-                   {r, p, r, p},
-                   {c, c, c, c},
-                   {599636, 431376, 598336, 432192},
-                   {411985, 610832, 415808, 595540},
-                   {px, py, px, py},
-                   {614928, 399424, 615744, 428369}},
     score = 0, next_p = -1;
 
 int get_next_piece() { return next_p; }
@@ -52,8 +45,8 @@ void restart() {
 }
 
 // extract a 2-bit number from a block entry
-int NUM(int x, int y) { return 3 & block[p][x] >> y; }
-int NUM_NEXT(int x, int y) { return 3 & block[next_p][x] >> y; }
+int NUM(int x, int y, int piece_id);
+int NUM_NEXT(int x, int y) { return NUM(x, y, next_p); }
 
 // create a new piece, don't remove old one (it has landed and should stick)
 void new_piece() {
@@ -61,7 +54,7 @@ void new_piece() {
   if (next_piece_list.size() < 7)
   {
     int seed = y;
-    std::shuffle(piece_pool.begin(), piece_pool.end(), std::default_random_engine(seed));
+    //std::shuffle(piece_pool.begin(), piece_pool.end(), std::default_random_engine(seed));
     for (auto i: piece_pool)
     {
       next_piece_list.push_back(i);
@@ -81,9 +74,9 @@ void new_piece() {
   next_piece_list.pop_front();
 
   r = pr = 0;
-  x = px = 5;
+  x = px = 4;
 
-  setAction();
+  setAction(0);
 }
 
 // draw the board and score
@@ -109,7 +102,7 @@ void frame() {
 // set the value fo the board for a particular (x,y,r) piece
 void set_piece(int x, int y, int r, int v) {
   for (int i = 0; i < 8; i += 2) {
-    board[NUM(r, i * 2) + y][NUM(r, (i * 2) + 2) + x] = v;
+    board[NUM(r, i * 2, p) + y][NUM(r, (i * 2) + 2, p) + x] = v;
   }
 }
 
@@ -122,7 +115,8 @@ void update_piece() {
 // remove line(s) from the board if they're full
 int remove_line(std::vector<int>& lines_removed) {
   int nlines = 0;
-  for (int row = y; row <= y + NUM(r, 18); row++) {
+  //for (int row = y; row <= y + NUM(r, 18, p); row++) { // ??
+  for (int row = y; row <= y + 4; row++) {
     c = 1;
     for (int i = 0; i < 10; i++) {
       c *= board[row][i];
@@ -149,13 +143,23 @@ void remove_lines(const std::vector<int>& lines_to_remove) {
 
 // check if placing p at (x,y,r) will be a collision
 int check_hit(int x, int y, int r) {
-  if (y + NUM(r, 18) > 19) {
+
+  // check hit bottom of map
+  if (y + NUM(r, 18, p) > 19) { // ??
     return 1;
   }
+
+  // check left edge
+  if (x + NUM(r, 22, p) < 0)
+  {
+    return 1;
+  }
+
+  // remove piece and do something
   set_piece(px, py, pr, 0);
   c = 0;
   for (int i = 0; i < 8; i += 2) {
-    board[y + NUM(r, i * 2)][x + NUM(r, (i * 2) + 2)] && c++;
+    board[y + NUM(r, i * 2, p)][x + NUM(r, (i * 2) + 2, p)] && c++;
   }
   set_piece(px, py, pr, p + 1);
   return c;
@@ -208,10 +212,11 @@ int do_tick() {
 // main game loop with wasd input checking
 void runloop() {
   if (do_tick()) {
-    if ((c = getAction()) == 'a' && x > 0 && !check_hit(x - 1, y, r)) {
+    //if ((c = getAction()) == 'a' && x > 0 && !check_hit(x - 1, y, r)) {
+    if ((c = getAction()) == 'a' && !check_hit(x - 1, y, r)) {
       x--;
     }
-    if (c == 'd' && x + NUM(r, 16) < 9 && !check_hit(x + 1, y, r)) {
+    if (c == 'd' && x + NUM(r, 16, p) < 9 && !check_hit(x + 1, y, r)) { // ??
       x++;
     }
     if (c == 's') {
@@ -219,7 +224,7 @@ void runloop() {
     }
     if (c == 'w') {
       (r+=3) %= 4;
-      while (x + NUM(r, 16) > 9) {
+      while (x + NUM(r, 16, p) > 9) { //  ??
         x--;
       }
       if (check_hit(x, y, r)) {
