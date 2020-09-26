@@ -68,8 +68,11 @@ void init()
   new_piece();
 
   // Key callbacks
-  emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, 0, 1, key_callback);
-  emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, 0, 1, key_callback);
+  emscripten_set_keydown_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, 1, key_callback);
+  emscripten_set_keyup_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, 1, key_callback);
+
+  //glfwSetKeyCallback(g_windowManager.g_window, ImGui_ImplGlfw_KeyCallback);
+  //glfwSetCharCallback(g_windowManager.g_window, ImGui_ImplGlfw_CharCallback);  
 }
 
 
@@ -121,8 +124,30 @@ EM_BOOL key_callback(int action, const EmscriptenKeyboardEvent *e, void *userDat
   {
     if (strcmp(e->key, "ArrowDown") == 0) 
       setAction(0);
+
   }
 
+  //ImGui_ImplGlfw_KeyCallback(g_windowManager.g_window, e->charCode, e->keyCode, action, e->ctrlKey | e->shiftKey | e->altKey | e->metaKey);
+  ImGuiIO& io = ImGui::GetIO();
+  // if (action == EMSCRIPTEN_EVENT_KEYDOWN)
+  //     io.KeysDown[e->keyCode] = true;
+  // if (action == EMSCRIPTEN_EVENT_KEYUP)
+  //     io.KeysDown[e->keyCode] = false;
+  if (action == EMSCRIPTEN_EVENT_KEYDOWN)
+    io.AddInputCharacter((unsigned short)e->keyCode);
+
+    // Modifiers are not reliable across systems
+    // io.KeyCtrl = io.KeysDown[GLFW_KEY_LEFT_CONTROL] || io.KeysDown[GLFW_KEY_RIGHT_CONTROL];
+    // io.KeyShift = io.KeysDown[GLFW_KEY_LEFT_SHIFT] || io.KeysDown[GLFW_KEY_RIGHT_SHIFT];
+    // io.KeyAlt = io.KeysDown[GLFW_KEY_LEFT_ALT] || io.KeysDown[GLFW_KEY_RIGHT_ALT];
+    // io.KeySuper = io.KeysDown[GLFW_KEY_LEFT_SUPER] || io.KeysDown[GLFW_KEY_RIGHT_SUPER];
+
+  // printf("%s\n", e->key);
+  // printf("%s\n", e->code);
+  // printf("%s\n", e->charValue);
+  // printf("%i\n", e->keyCode);
+  // printf("%i\n", e->charCode);
+    
   return true;
 }
 

@@ -1,6 +1,6 @@
 CC=emcc
 WEBCORE_DIR=../WebCore
-SOURCES=main.cpp system.cpp immediate-tetris.cpp juice.cpp fonts.cpp tinytetris-commented.cpp
+SOURCES=main.cpp system.cpp immediate-tetris.cpp juice.cpp fonts.cpp highscore.cpp tinytetris-commented.cpp
 LDFLAGS=-O2 --llvm-opts 2
 OUTPUT=out/imtetris.js
 USE_IMGUI=-I$(WEBCORE_DIR)/imgui/
@@ -17,7 +17,7 @@ USE_ASYNC_FILES=-s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1
 all: $(SOURCES) $(OUTPUT)
 
 $(OUTPUT): $(SOURCES)
-	$(CC) -Isrc -I/usr/local/include/ $(SOURCES) $(USE_IMGUI) -std=c++1z $(USE_VORBIS) $(USE_LIBPNG) $(USE_WEBGL) $(USE_ENGINE_WEBCORE) $(LDFLAGS) -o $(OUTPUT) -s WASM=1 -s ASSERTIONS=1 --preload-file data -s ALLOW_MEMORY_GROWTH=1 --emrun
+	$(CC) -Isrc -I/usr/local/include/ $(SOURCES) $(USE_IMGUI) -std=c++1z $(USE_VORBIS) $(USE_LIBPNG) $(USE_WEBGL) $(USE_ENGINE_WEBCORE) $(LDFLAGS) -o $(OUTPUT) -s WASM=1 -s ASSERTIONS=1 --preload-file data -s INITIAL_MEMORY=58982400 -s FETCH=1 --emrun
 
 clean:
 	rm $(OUTPUT)

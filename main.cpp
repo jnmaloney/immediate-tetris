@@ -1,8 +1,10 @@
 #include "system.h"
+#include "highscore.h"
 
 
 extern "C" int main(int argc, char** argv)
 {
+  async_fetch();
   init();
 
   #ifdef __EMSCRIPTEN__

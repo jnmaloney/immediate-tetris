@@ -29,7 +29,6 @@ std::list<int> next_piece_list;
 std::vector<int> piece_pool = { 0, 1, 2, 3, 4, 5, 6 };
 
 
-// block layout is: {w-1,h-1}{x0,y0}{x1,y1}{x2,y2}{x3,y3} (two bits each)
 int x = 431424, y = 598356, r = 427089, px = 247872, py = 799248, pr,
     c = 348480, p = 615696, tick, board[20][10],
     score = 0, next_p = -1;
@@ -41,11 +40,14 @@ int get_score() { return score; }
 void restart() {
   memset(&board[0][0], 0, 20 * 10 * sizeof(int));
   next_p = -1;
+  next_piece_list.clear();
   score = 0;
 }
 
 // extract a 2-bit number from a block entry
 int NUM(int x, int y, int piece_id);
+int GET_LEFT_NUM(int r, int piece_id) { return NUM(r, 22, piece_id); }
+int GET_RIGHT_NUM(int r, int piece_id) { return NUM(r, 16, piece_id); }
 int NUM_NEXT(int x, int y) { return NUM(x, y, next_p); }
 
 // create a new piece, don't remove old one (it has landed and should stick)
@@ -54,7 +56,7 @@ void new_piece() {
   if (next_piece_list.size() < 7)
   {
     int seed = y;
-    //std::shuffle(piece_pool.begin(), piece_pool.end(), std::default_random_engine(seed));
+    std::shuffle(piece_pool.begin(), piece_pool.end(), std::default_random_engine(seed));
     for (auto i: piece_pool)
     {
       next_piece_list.push_back(i);
@@ -165,11 +167,10 @@ int check_hit(int x, int y, int r) {
   return c;
 }
 
-// TODO: Time = (0.8-((Level-1)*0.007))^(Level-1) 
 // slowly tick the piece y position down so the piece falls
 int do_tick() {
   std::vector<int> lines_removed;
-  int tick_timer = 33 - (get_level() * 3);
+  int tick_timer = 30 * powf(0.8 - ((get_level() - 1) * 0.007), get_level() - 1);
   if (++tick > tick_timer) {
     tick = 0;
     int nlines = 0;
@@ -222,15 +223,41 @@ void runloop() {
     if (c == 's') {
       tick += 30;
     }
+
+    // Rotation
     if (c == 'w') {
-      (r+=3) %= 4;
-      while (x + NUM(r, 16, p) > 9) { //  ??
-        x--;
+
+      (r+=1) %= 4;
+      
+      // kick off wall
+      while (x + GET_LEFT_NUM(r, p) < 0) ++x;
+      while (x + GET_RIGHT_NUM(r, p) > 9) --x;
+
+      bool rotate_blocked = true;
+      if (!check_hit(x, y, r)) 
+      {
+        rotate_blocked = false;
       }
-      if (check_hit(x, y, r)) {
+      // kick right
+      if (rotate_blocked && !check_hit(x + 1, y, r)) 
+      {
+         x = x + 1;
+        rotate_blocked = false;
+      }
+      // kick left
+      if (rotate_blocked && !check_hit(x - 1, y, r))
+      {
+        x = x - 1;
+        rotate_blocked = false;        
+      }
+
+      if (rotate_blocked)
+      {
+        // reset (don't rotate)
         x = px;
         r = pr;
       }
+
     }
     if (c == 'q') {
       quit_game();

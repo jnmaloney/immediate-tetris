@@ -10,7 +10,9 @@ enum GameState
   PLAY,
   LINE,
   GAME_OVER,
-  PAUSE
+  PAUSE,
+  SHOW_HIGH_SCORES,
+  WAIT_FOR_SERVER,
 };
 
 

@@ -4,6 +4,7 @@
 #include "juice.h"
 #include <algorithm>
 #include "game_values.h"
+#include "highscore.h"
 
 
 GameState game_state = MENU;
@@ -227,7 +228,7 @@ std::vector< std::vector< std::vector<int> > > tetronimo_piece =
 
 
 void quit_game()
-{
+{  
   game_state = PAUSE;
 }
 
@@ -235,7 +236,6 @@ void quit_game()
 void game_over()
 {
   game_state = GAME_OVER;
-  restart();
 }
 
 
@@ -324,18 +324,30 @@ void imtetris_loop()
     bubble_text_unformatted_title(50, 120, 0, "Immediate");
     bubble_text_unformatted_title(97, 175, 1+16, "Tetris");
 
-    ImGui::SetCursorPos(ImVec2(172 - 25, 280));
+    // Starting level selection
+    ImGui::SetCursorPos(ImVec2(172 - 75, 280));
+    ImGui::TextUnformatted("Level");
+    const ImS32   s32_zero = 0,   s32_one = 1;//,   s32_fifty = 50, s32_min = INT_MIN/2,   s32_max = INT_MAX/2,    s32_hi_a = INT_MAX/2 - 100,    s32_hi_b = INT_MAX/2;
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(90);
+    ImGui::InputScalar("##Level", ImGuiDataType_S32, &g_level, &s32_one, NULL, "%i", 0);
+    if (g_level < 1) g_level = 1;
+    if (g_level > 9) g_level = 9;
+
+    // Your name for high scores
+    //ImGui::TextUnformatted("Your name");
+
+    ImGui::SetCursorPos(ImVec2(172 - 25, 320));
     if (ImGui::Button("Start"))
     {
       game_state = PLAY;
     }
 
-    ImGui::TextUnformatted("Level");
-    const ImS32   s32_zero = 0,   s32_one = 1;//,   s32_fifty = 50, s32_min = INT_MIN/2,   s32_max = INT_MAX/2,    s32_hi_a = INT_MAX/2 - 100,    s32_hi_b = INT_MAX/2;
-    ImGui::SetNextItemWidth(250);
-    ImGui::InputScalar("##Level", ImGuiDataType_S32, &g_level, &s32_one, NULL, "%i", 0);
-    if (g_level < 1) g_level = 1;
-    if (g_level > 9) g_level = 9;
+    ImGui::SetCursorPos(ImVec2(172 - 95, 420));
+    if (ImGui::Button("Show High Scores"))
+    {
+      game_state = SHOW_HIGH_SCORES;
+    }
   }
   else if (game_state == PAUSE)
   {
@@ -354,9 +366,22 @@ void imtetris_loop()
 
     // Show score panel (current/hi)
 
-    if (ImGui::Button("Restart"))
+    ImGui::TextUnformatted("Enter your name to submit high score");
+    static char buf[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+    ImGui::InputText("Your Name: ", buf, IM_ARRAYSIZE(buf));
+
+    if (ImGui::Button("Submit"))
     {
-      game_state = PLAY;
+      score_game_ended(std::string(buf), get_score());
+      //game_state = SHOW_HIGH_SCORES;
+      game_state = WAIT_FOR_SERVER;
+    }
+
+    ImGui::Separator();
+    if (ImGui::Button("Main Menu"))
+    {
+      restart();
+      game_state = MENU;
     }
 
     draw_score();
@@ -378,6 +403,28 @@ void imtetris_loop()
       g_lines_removed.clear();
       game_state = PLAY;
     }
+  }
+  else if (game_state == SHOW_HIGH_SCORES)
+  {
+    ImGui::TextUnformatted("High Scores");
+
+    std::vector<Score> scores;
+    score_get(scores);
+    for (auto& i: scores)
+    {
+      ImGui::Text("%s", i.name.c_str());
+      ImGui::SameLine();
+      ImGui::Text(" %i ", i.score);
+    }
+
+    if (ImGui::Button("Main Menu"))
+    {
+      game_state = MENU;
+    }
+  }
+  else if (game_state == WAIT_FOR_SERVER)
+  {
+    ImGui::Text("Waiting...");
   }
 
   ImGui::PopFont();
@@ -478,4 +525,11 @@ int NUM(int x, int y, int piece_id)
     ++i;
   }
   return n;
+}
+
+
+void event_download_succeded()
+{
+  if (game_state == WAIT_FOR_SERVER)
+    game_state = SHOW_HIGH_SCORES;
 }
