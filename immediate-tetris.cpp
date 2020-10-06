@@ -5,6 +5,8 @@
 #include <algorithm>
 #include "game_values.h"
 #include "highscore.h"
+#include <random>
+#include <chrono>
 
 
 GameState game_state = MENU;
@@ -31,12 +33,12 @@ void inc_level() { ++g_level; }
 // A G B R
 const ImU32 palette[8] = {
   0xFFa67b77,
-  0xFF0b30fe,
+  0xFFb4c247,
   0xFF5c5ac4,
-  0xFFcb52b5,
   0xFF4fabcf,
   0xFF76a78c,
-  0xFFb4c247,
+  0xFFcb52b5,
+  0xFF0b30fe,
   0xFFd34a76,
 };
 ImU32 getPalette(int i) { return palette[i]; }
@@ -532,4 +534,12 @@ void event_download_succeded()
 {
   if (game_state == WAIT_FOR_SERVER)
     game_state = SHOW_HIGH_SCORES;
+}
+
+
+void shuffle(std::vector<int>& piece_pool)
+{
+  static int seed = std::chrono::system_clock::now().time_since_epoch().count();
+  static std::default_random_engine generator(seed);
+  std::shuffle(piece_pool.begin(), piece_pool.end(), generator);
 }

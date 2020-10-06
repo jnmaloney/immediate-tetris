@@ -18,6 +18,7 @@
 #include "AudioManager.h"
 
 #include <algorithm>
+#include <random>
 
 #include "immediate-tetris.h"
 #include "fonts.h"
@@ -29,6 +30,7 @@ WindowManager g_windowManager;
 MenuManager g_menuManager;
 
 AudioManager g_audio;
+
 
 void quit()
 {

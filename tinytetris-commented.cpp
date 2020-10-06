@@ -7,8 +7,9 @@
 #include <list>
 #include <vector>
 #include <algorithm>
-#include <random>
 #include "immediate-tetris.h"
+
+#include <chrono>
 
 
 int all_line_count = 0;
@@ -55,8 +56,7 @@ void new_piece() {
   // Set piece queue
   if (next_piece_list.size() < 7)
   {
-    int seed = y;
-    std::shuffle(piece_pool.begin(), piece_pool.end(), std::default_random_engine(seed));
+    shuffle(piece_pool);
     for (auto i: piece_pool)
     {
       next_piece_list.push_back(i);
@@ -170,7 +170,7 @@ int check_hit(int x, int y, int r) {
 // slowly tick the piece y position down so the piece falls
 int do_tick() {
   std::vector<int> lines_removed;
-  int tick_timer = 30 * powf(0.8 - ((get_level() - 1) * 0.007), get_level() - 1);
+  int tick_timer = 60 * powf(0.8 - ((get_level() - 1) * 0.007), get_level() - 1);
   if (++tick > tick_timer) {
     tick = 0;
     int nlines = 0;
@@ -184,6 +184,13 @@ int do_tick() {
     } else {
       y++;
       update_piece();
+
+      // // HACK timing
+      // static auto t1 = std::chrono::high_resolution_clock::now();
+      // static auto t2 = std::chrono::high_resolution_clock::now();
+      // printf("timer: %i\n", std::chrono::duration_cast<std::chrono::milliseconds>(t2-t1).count());
+      // t2 = t1;
+      // t1 = std::chrono::high_resolution_clock::now();
     }
     if (nlines == 1) {
       score +=   40 * get_level();

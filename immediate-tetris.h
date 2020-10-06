@@ -40,3 +40,5 @@ void draw_score();
 
 
 void imtetris_loop();
+
+void shuffle(std::vector<int>& pool);
